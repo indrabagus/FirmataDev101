@@ -125,14 +125,15 @@ class Arduino(object):
         if(self.serial.isOpen()):
             self.serial.close()
     
-    def GetMajorFirmware(self):
+    def GetMajorFirmwareVer(self):
         return self._majorfirmware
 
-    def GetMinorFirmware(self):
+    def GetMinorFirmwareVer(self):
         return self._minorfirmware
 
 
 if __name__ == '__main__':
     print("Initiate Arduino board")
     with Arduino('COM4') as board:
-        pass
+        print("Major Version: ", board.GetMajorFirmwareVer())
+        print("Minor Version: ",board.GetMinorFirmwareVer())
