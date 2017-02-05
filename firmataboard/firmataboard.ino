@@ -13,6 +13,7 @@ void setup() {
     Firmata.attach(DIGITAL_MESSAGE,digital_write);
     // Begin the firmata module
     Firmata.begin(57600);
+    while (!Serial);
 }
 
 void loop() {
