@@ -103,15 +103,8 @@ class Arduino(object):
 
     def _get_firmware(self):
         datatx = bytes([0xF0,0x79,0xF7])
-        Utility.logcomm(datatx)
-        self.serial.write(datatx)
-        self.serial.flush()
-        starttime = time.time()
-        while(self.serial.inWaiting() == 0):
-            if((time.time() - starttime) > 10):
-                raise IOError("Time out during get firmware")
-        resp = self.serial.readline()
-        Utility.logcomm(resp,False)
+        self._transmit(datatx)
+        resp = self._receive()
         # Validate response, ex resp: F0790205610072006400750069006E006F005F00310030003100F7
         le = len(resp)
         if((le < 5) or
