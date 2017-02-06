@@ -72,6 +72,7 @@ class Arduino(object):
         self.enablelogcom = True
         self._majorfirmware = None
         self._minorfirmware = None
+        self._szfirmware = str()
         # Initialization of serial port
         self.serial = serial.Serial()
         self.serial.port = port
@@ -116,7 +117,12 @@ class Arduino(object):
         self._minorfirmware = resp[3]
         # Extract the firmware string (if it exist)
         if(le > 5):
-            pass
+            leapdu = le-5
+            if((leapdu % 2)):
+                raise Exception("Invalid firmware payload response")
+            for i in resp[4:le-1:2]:
+                self._szfirmware += char(i)
+
 
     def __enter__(self):
         return self
@@ -131,9 +137,13 @@ class Arduino(object):
     def GetMinorFirmwareVer(self):
         return self._minorfirmware
 
+    def GetStringFirmwareVer(self):
+        return self._szfirmware
+
 
 if __name__ == '__main__':
     print("Initiate Arduino board")
     with Arduino('COM4') as board:
         print("Major Version: ", board.GetMajorFirmwareVer())
         print("Minor Version: ",board.GetMinorFirmwareVer())
+        print("String Version: ",board.GetStringFirmwareVer())
