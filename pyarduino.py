@@ -1,5 +1,6 @@
 import serial
 import time
+from enum import Enum
 
 
 class Utility:
@@ -67,7 +68,23 @@ class Utility:
         print(sz + Utility.payload2str(bytesdata,enableaddr=False))
 
 
+class DIGMODE(Enum):
+    INPUT   = 0
+    OUTPUT  = 1
+    ANALOG  = 2
+    PWM     = 3
+    SERVO   = 4
+    I2C     = 6
+    ONEWIRE = 7
+    STEPPER = 8
+    ENCODER = 9
+    SERIAL  = 10
+    PULLUP  = 11    
+
+
 class Arduino(object):
+    DIGITAL_LOW     = 0
+    DIGITAL_HIGH    = 1
     def __init__(self,port,baudrate=57600):
         self.enablelogcom = True
         self._majorfirmware = None
@@ -130,6 +147,17 @@ class Arduino(object):
     def __exit__(self, exc_type, exc_value, traceback):
         if(self.serial.isOpen()):
             self.serial.close()
+
+    def SetDigitalMode(self,pin,mode):
+        if (isinstance(mode,DIGMODE) == False):
+            raise TypeError("mode should be a DigMode class")
+        datatx = bytes([0xF4,pin,mode.value])
+        self._transmit(datatx)
+
+
+    def SetDigitalVal(self,pin, value):
+        datatx = bytes([0xF5,pin,value])
+        self._transmit(datatx)
     
     def GetMajorFirmwareVer(self):
         return self._majorfirmware
@@ -141,9 +169,16 @@ class Arduino(object):
         return self._szfirmware
 
 
+import time
+
 if __name__ == '__main__':
     print("Initiate Arduino board")
     with Arduino('COM4') as board:
         print("Major Version: ", board.GetMajorFirmwareVer())
         print("Minor Version: ",board.GetMinorFirmwareVer())
         print("String Version: ",board.GetStringFirmwareVer())
+        board.SetDigitalMode(13,DIGMODE.OUTPUT)
+        board.SetDigitalVal(13,Arduino.DIGITAL_HIGH)
+        time.sleep(5)
+        board.SetDigitalVal(13,Arduino.DIGITAL_LOW)
+
