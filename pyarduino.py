@@ -86,6 +86,8 @@ class Arduino(object):
     DIGITAL_LOW     = 0
     DIGITAL_HIGH    = 1
     def __init__(self,port,baudrate=57600):
+        self.digital_output_data =  [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
+        self.digital_input_data  = [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
         self.enablelogcom = True
         self._majorfirmware = None
         self._minorfirmware = None
@@ -138,7 +140,7 @@ class Arduino(object):
             if((leapdu % 2)):
                 raise Exception("Invalid firmware payload response")
             for i in resp[4:le-1:2]:
-                self._szfirmware += char(i)
+                self._szfirmware += chr(i)
 
 
     def __enter__(self):
@@ -156,7 +158,14 @@ class Arduino(object):
 
 
     def SetDigitalVal(self,pin, value):
-        datatx = bytes([0xF5,pin,value])
+        port_number = (pin >> 3) & 0x0F
+        if value == 0:
+          self.digital_output_data[port_number] = self.digital_output_data[port_number] & ~(1 << (pin & 0x07))
+        else:
+          self.digital_output_data[port_number] = self.digital_output_data[port_number] | (1 << (pin & 0x07))        
+        datatx = bytes([ 0x90|port_number,
+                        (self.digital_output_data[port_number] & 0x7F),
+                        (self.digital_output_data[port_number] >> 7)])
         self._transmit(datatx)
     
     def GetMajorFirmwareVer(self):
@@ -178,7 +187,11 @@ if __name__ == '__main__':
         print("Minor Version: ",board.GetMinorFirmwareVer())
         print("String Version: ",board.GetStringFirmwareVer())
         board.SetDigitalMode(13,DIGMODE.OUTPUT)
-        board.SetDigitalVal(13,Arduino.DIGITAL_HIGH)
-        time.sleep(5)
-        board.SetDigitalVal(13,Arduino.DIGITAL_LOW)
+        loop=0
+        while(loop < 10):
+            board.SetDigitalVal(13,Arduino.DIGITAL_HIGH)
+            time.sleep(1)
+            board.SetDigitalVal(13,Arduino.DIGITAL_LOW)
+            time.sleep(1)            
+            loop+=1
 
