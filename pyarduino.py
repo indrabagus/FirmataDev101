@@ -86,8 +86,8 @@ class Arduino(object):
     DIGITAL_LOW     = 0
     DIGITAL_HIGH    = 1
     def __init__(self,port,baudrate=57600):
-        self.digital_output_data =  [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
-        self.digital_input_data  = [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
+        self.digital_output_data =  [0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+        self.digital_input_data  = [0,0,0,0,0,0,0,0,0,0,0,0,0,0]
         self.enablelogcom = True
         self._majorfirmware = None
         self._minorfirmware = None
@@ -96,14 +96,14 @@ class Arduino(object):
         self.serial = serial.Serial()
         self.serial.port = port
         self.serial.baudrate = baudrate
-        self.serial.bytesize = serial.EIGHTBITS #number of bits per bytes
-        self.serial.parity = serial.PARITY_NONE #set parity check: no parity
-        self.serial.stopbits = serial.STOPBITS_ONE #number of stop bits
-        self.serial.timeout = 2              #timeout block read
-        self.serial.xonxoff = False     #disable software flow control
-        self.serial.rtscts = False     #disable hardware (RTS/CTS) flow control
-        self.serial.dsrdtr = False       #disable hardware (DSR/DTR) flow control
-        self.serial.writeTimeout = 2     #timeout for write        
+        self.serial.bytesize = serial.EIGHTBITS     #number of bits per bytes
+        self.serial.parity = serial.PARITY_NONE     #set parity check: no parity
+        self.serial.stopbits = serial.STOPBITS_ONE  #number of stop bits
+        self.serial.timeout = 2                     #timeout block read
+        self.serial.xonxoff = False                 #disable software flow control
+        self.serial.rtscts = False                  #disable hardware (RTS/CTS) flow control
+        self.serial.dsrdtr = False                  #disable hardware (DSR/DTR) flow control
+        self.serial.writeTimeout = 2                #timeout for write        
         self.serial.open()
         self._get_firmware()
         
@@ -116,7 +116,7 @@ class Arduino(object):
         starttime = time.time()
         while(self.serial.inWaiting() == 0):
             if((time.time() - starttime) > 10):
-                raise IOError("Time out during get firmware")
+                raise IOError("Time out during receiving serial")
         resp = self.serial.readline()
         Utility.logcomm(resp,False)
         return resp        
@@ -160,9 +160,9 @@ class Arduino(object):
     def SetDigitalVal(self,pin, value):
         port_number = (pin >> 3) & 0x0F
         if value == 0:
-          self.digital_output_data[port_number] = self.digital_output_data[port_number] & ~(1 << (pin & 0x07))
+            self.digital_output_data[port_number] = self.digital_output_data[port_number] & ~(1 << (pin & 0x07))
         else:
-          self.digital_output_data[port_number] = self.digital_output_data[port_number] | (1 << (pin & 0x07))        
+            self.digital_output_data[port_number] = self.digital_output_data[port_number] | (1 << (pin & 0x07))        
         datatx = bytes([ 0x90|port_number,
                         (self.digital_output_data[port_number] & 0x7F),
                         (self.digital_output_data[port_number] >> 7)])
