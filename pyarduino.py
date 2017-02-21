@@ -156,18 +156,27 @@ class Arduino(object):
         datatx = bytes([0xF4,pin,mode.value])
         self._transmit(datatx)
 
-
     def SetDigitalVal(self,pin, value):
         port_number = (pin >> 3) & 0x0F
+        # jika pin = 13 maka pin ke-13 ( pin-5 di port 1 ) di set menjadi 0 atau 1 (selain-0)
         if value == 0:
             self.digital_output_data[port_number] = self.digital_output_data[port_number] & ~(1 << (pin & 0x07))
         else:
             self.digital_output_data[port_number] = self.digital_output_data[port_number] | (1 << (pin & 0x07))        
         datatx = bytes([ 0x90|port_number,
-                        (self.digital_output_data[port_number] & 0x7F),
-                        (self.digital_output_data[port_number] >> 7)])
+                        (self.digital_output_data[port_number] & 0x7F), # bit 0-6
+                        (self.digital_output_data[port_number] >> 7)])  # bit 7
         self._transmit(datatx)
-    
+
+    def SetDigitalPortVal(self,port,value):
+        if(port > 2):
+            raise IOError("Port should be 0,1,2")
+        self.digital_output_data[port]=value
+        datatx = bytes([ 0x90|port_number,
+                        (self.digital_output_data[port_number] & 0x7F), # bit 0-6
+                        (self.digital_output_data[port_number] >> 7)])  # bit 7
+        self._transmit(datatx)
+
     def GetMajorFirmwareVer(self):
         return self._majorfirmware
 
